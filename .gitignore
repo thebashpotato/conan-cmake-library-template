@@ -30,3 +30,16 @@
 *.exe
 *.out
 *.app
+
+# Build output directories
+include/myproject/config.hpp
+.cache/
+build/
+out/
+package_test/build
+
+# Editors
+.vscode/
+.idea/
+compile_commands.json
+
