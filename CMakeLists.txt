@@ -42,6 +42,11 @@ myproject_global_options()
 myproject_local_options()
 
 #
+# Setup Dependencies
+#
+myproject_setup_dependencies(${myproject_ENABLE_DEVELOPER_MODE})
+
+#
 # Setup interfaced option/warning libraries
 #
 target_compile_features(myproject_options INTERFACE cxx_std_${CMAKE_CXX_STANDARD})
@@ -52,7 +57,7 @@ add_library(myproject_warnings::myproject_warnings ALIAS myproject_warnings)
 #
 # Source Files
 #
-set(myproject_SOURCE_FILES ${myproject_SOURCE_DIR}/lib.cpp)
+set(myproject_SOURCE_FILES ${myproject_SOURCE_DIR}/lib.cpp ${myproject_SOURCE_DIR}/log.cpp)
 
 #
 # Configuration files
@@ -78,6 +83,8 @@ target_link_libraries(
   ${myproject_TARGET_NAME}
   PRIVATE $<BUILD_INTERFACE:myproject_options::myproject_options>
   PRIVATE $<BUILD_INTERFACE:myproject_warnings::myproject_warnings>)
+
+target_link_libraries(${myproject_TARGET_NAME} PRIVATE spdlog::spdlog)
 
 #
 # Add public header file include dir to build and install interface
