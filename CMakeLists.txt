@@ -47,17 +47,12 @@ myproject_local_options()
 myproject_setup_dependencies(${myproject_ENABLE_DEVELOPER_MODE})
 
 #
-# Setup interfaced option/warning libraries
+# Setup interfaced option/warning targets
 #
 target_compile_features(myproject_options INTERFACE cxx_std_${CMAKE_CXX_STANDARD})
 target_compile_features(myproject_options INTERFACE c_std_${CMAKE_C_STANDARD})
 add_library(myproject_options::myproject_options ALIAS myproject_options)
 add_library(myproject_warnings::myproject_warnings ALIAS myproject_warnings)
-
-#
-# Source Files
-#
-set(myproject_SOURCE_FILES ${myproject_SOURCE_DIR}/lib.cpp ${myproject_SOURCE_DIR}/log.cpp)
 
 #
 # Configuration files
@@ -66,28 +61,43 @@ configure_file(${myproject_CONFIGURE_FILE_DIR}/config.hpp.in
                ${myproject_INCLUDE_DIR}/${myproject_TARGET_NAME}/config.hpp)
 
 #
+# Set any private sources that will not be installed, this goes for implementation and header files
+#
+set(myproject_PRIVATE_SOURCES ${myproject_SOURCE_DIR}/log.cpp)
+
+#
+# Set public header files that will be installed and made available to the IDE during development
+#
+set(myproject_PUBLIC_HEADERS ${myproject_INCLUDE_DIR}/log.hpp ${myproject_INCLUDE_DIR}/config.hpp)
+
+#
 # Create and Alias the library
 #
-add_library(${myproject_TARGET_NAME} ${myproject_SOURCE_FILES})
+add_library(${myproject_TARGET_NAME})
 add_library(${myproject_TARGET_ALIAS} ALIAS ${myproject_TARGET_NAME})
 
 #
-# Version the library
+# Add private sources
 #
-set_target_properties(${myproject_TARGET_NAME} PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION ${PROJECT_VERSION_MAJOR})
+target_sources(${myproject_TARGET_NAME} PRIVATE ${myproject_PRIVATE_SOURCES})
+
+#
+# Declare public header files (will also be made available to IDE) and version the library
+#
+set_target_properties(
+  ${myproject_TARGET_NAME}
+  PROPERTIES PUBLIC_HEADER "${myproject_PUBLIC_HEADERS}"
+             VERSION ${PROJECT_VERSION}
+             SOVERSION ${PROJECT_VERSION_MAJOR})
 
 #
 # Link required dependencies
 #
-target_link_libraries(
-  ${myproject_TARGET_NAME}
-  PRIVATE $<BUILD_INTERFACE:myproject_options::myproject_options>
-  PRIVATE $<BUILD_INTERFACE:myproject_warnings::myproject_warnings>)
-
-target_link_libraries(${myproject_TARGET_NAME} PRIVATE spdlog::spdlog)
+target_link_libraries(${myproject_TARGET_NAME} PRIVATE myproject_options::myproject_options
+                                                       myproject_warnings::myproject_warnings spdlog::spdlog)
 
 #
-# Add public header file include dir to build and install interface
+# Add public include dir to build interface, set install include interface
 #
 target_include_directories(${myproject_TARGET_NAME} PUBLIC $<BUILD_INTERFACE:${myproject_INCLUDE_DIR}>
                                                            $<INSTALL_INTERFACE:${myproject_INSTALL_INCLUDE_DIR}>)
